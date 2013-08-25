@@ -95,6 +95,9 @@
                                                           directionType:kDirectionForward];
     animationDelegate.controller = self;
     animationDelegate.perspectiveDepth = 200;
+    [animationDelegate setAnimationCompletionBlock:^(AnimationDelegate *animationDelegate) {
+        NSLog(@"completion block did run");
+    }];
     
     self.flipView = [[FlipView alloc] initWithAnimationType:kAnimationFlipVertical
                                                       frame:CGRectMake(60, 95, 200, 50)];

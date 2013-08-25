@@ -140,6 +140,9 @@
 {
     [self resetTransformValues];
     
+    if (self.animationCompletionBlock)
+        self.animationCompletionBlock(self);
+    
     if (repeat && sequenceType == kSequenceAuto) {
         // the recommended way to queue CAAnimations by Apple is to offset the beginTime, 
         // but doing so requires changing the fillmode to kCAFillModeBackwards

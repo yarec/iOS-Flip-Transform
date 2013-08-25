@@ -36,7 +36,7 @@
 
 #import <Foundation/Foundation.h>
 
-@class GenericAnimationView;
+@class GenericAnimationView, AnimationDelegate;
 
 typedef enum {
     kSequenceAuto,         // animation continues without input, looping through image data
@@ -55,6 +55,8 @@ typedef enum {
     kDirectionBackward,
 } DirectionType;
 
+typedef void (^AnimationCompletionBlock)(AnimationDelegate *animationDelegate);
+
 @interface AnimationDelegate : NSObject {
     
     CGImageRef transitionImageBackup;
@@ -71,6 +73,7 @@ typedef enum {
 
 @property (nonatomic, assign) GenericAnimationView *transformView;
 @property (nonatomic, assign) id controller;
+@property (readwrite, copy) AnimationCompletionBlock animationCompletionBlock;
 
 // the duration of the next animation cycle
 @property (nonatomic) float nextDuration;
@@ -134,5 +137,6 @@ typedef enum {
 
 // callback after delegate is notified that animation has completed, or input has ended
 - (void)animationCallback;
+- (void)setAnimationCompletionBlock:(AnimationCompletionBlock)completionBlock;
 
 @end
