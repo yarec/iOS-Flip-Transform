@@ -39,20 +39,21 @@
 #import "GenericAnimationView.h"
 #import "AnimationFrame.h"
 
-@implementation AnimationDelegate
+@interface AnimationDelegate ()
+{
+    CGImageRef _transitionImageBackup;
+    
+    float _currentDuration;
+    
+    DirectionType _currentDirection;
+    
+    float _value;
+    
+    float _oldOpacityValue;
+}
+@end
 
-@synthesize transformView;
-@synthesize controller;
-@synthesize nextDuration;
-@synthesize sequenceType;
-@synthesize animationState;
-@synthesize animationLock;
-@synthesize shadow;
-@synthesize repeatDelay;
-@synthesize repeat;
-@synthesize sensitivity;
-@synthesize gravity;
-@synthesize perspectiveDepth;
+@implementation AnimationDelegate
 
 - (id)initWithSequenceType:(SequenceType)aType
              directionType:(DirectionType)aDirection 
@@ -60,25 +61,25 @@
 
     if ((self = [super init])) {
         
-        transformView = nil;
-        controller = nil;
+        self.transformView = nil;
+        self.controller = nil;
         
-        sequenceType = aType;
-        currentDirection = aDirection;
-        repeat = NO;
+        self.sequenceType = aType;
+        _currentDirection = aDirection;
+        self.repeat = NO;
         
         // default values
-        nextDuration = 0.6;
-        repeatDelay = 0.2;
-        sensitivity = 40;
-        gravity = 2;
-        perspectiveDepth = 500;
-        shadow = YES;
+        self.nextDuration = 0.6;
+        self.repeatDelay = 0.2;
+        self.sensitivity = 40;
+        self.gravity = 2;
+        self.perspectiveDepth = 500;
+        self.shadow = YES;
         
-        if (sequenceType == kSequenceAuto) {
-            repeat = YES;
+        if (self.sequenceType == kSequenceAuto) {
+            self.repeat = YES;
         } else {
-            repeat = NO;
+            self.repeat = NO;
         }
         
     }
@@ -87,15 +88,15 @@
 
 - (BOOL)startAnimation:(DirectionType)aDirection 
 {
-    if (animationState == 0) {
+    if (self.animationState == 0) {
         
         [NSObject cancelPreviousPerformRequestsWithTarget:self];
         
         if (aDirection != kDirectionNone) {
-            currentDirection = aDirection;
+            _currentDirection = aDirection;
         }
         
-        switch (currentDirection) {
+        switch (_currentDirection) {
             case kDirectionForward:
                 [self setTransformValue:10.0f delegating:YES];
                 return YES;
@@ -115,11 +116,11 @@
 {
     if (flag) {
         
-        switch (animationState) {
+        switch (self.animationState) {
             case 0:
                 break;
             case 1: {
-                switch (transformView.animationType) {
+                switch (self.transformView.animationType) {
                     case kAnimationFlipVertical:
                     case kAnimationFlipHorizontal: {
                         [self animationCallback];
@@ -143,34 +144,34 @@
     if (self.animationCompletionBlock)
         self.animationCompletionBlock(self);
     
-    if (repeat && sequenceType == kSequenceAuto) {
+    if (self.repeat && self.sequenceType == kSequenceAuto) {
         // the recommended way to queue CAAnimations by Apple is to offset the beginTime, 
         // but doing so requires changing the fillmode to kCAFillModeBackwards
         // using perform selector allows maintaining the fillmode value of the original animation
-        [self performSelector:@selector(startAnimation:) withObject:nil afterDelay:repeatDelay];
+        [self performSelector:@selector(startAnimation:) withObject:nil afterDelay:self.repeatDelay];
     }
         
 }
 
 - (void)endStateWithSpeed:(float)aVelocity
 {
-    if (value == 0.0f) {
+    if (_value == 0.0f) {
         
         [self resetTransformValues];
         
-    } else if (value == 10.0f) {
+    } else if (_value == 10.0f) {
         
         [self resetTransformValues];
         
     } else {
         
-        AnimationFrame* currentFrame = [transformView.imageStackArray lastObject];
+        AnimationFrame* currentFrame = [self.transformView.imageStackArray lastObject];
         CALayer *targetLayer;
         
         int aX, aY, aZ;
         int rotationModifier;
         
-        switch (transformView.animationType) {
+        switch (self.transformView.animationType) {
             case kAnimationFlipVertical:
                 aX = 1;
                 aY = 0;
@@ -188,67 +189,67 @@
         
         float rotationAfterDirection;
         
-        if (currentDirection == kDirectionForward) {
+        if (_currentDirection == kDirectionForward) {
             rotationAfterDirection = M_PI * rotationModifier;
             targetLayer = [currentFrame.animationImages lastObject];
-        } else if (currentDirection == kDirectionBackward) {
+        } else {
             rotationAfterDirection = -M_PI * rotationModifier;
             targetLayer = [currentFrame.animationImages objectAtIndex:0];
         }
         CALayer *targetShadowLayer;
         
         CATransform3D aTransform = CATransform3DIdentity;
-        aTransform.m34 = 1.0 / -perspectiveDepth;
-        [targetLayer setValue:[NSValue valueWithCATransform3D:CATransform3DRotate(aTransform,rotationAfterDirection/10.0 * value, aX, aY, aZ)] forKeyPath:@"transform"];
+        aTransform.m34 = 1.0 / -self.perspectiveDepth;
+        [targetLayer setValue:[NSValue valueWithCATransform3D:CATransform3DRotate(aTransform,rotationAfterDirection/10.0 * _value, aX, aY, aZ)] forKeyPath:@"transform"];
         for (CALayer *layer in targetLayer.sublayers) {
             [layer removeAllAnimations];
         }
         [targetLayer removeAllAnimations];
         
-        if (gravity > 0) {
+        if (self.gravity > 0) {
             
-            animationState = 1;
+            self.animationState = 1;
             
-            if (value+aVelocity <= 5.0f) {
+            if (_value+aVelocity <= 5.0f) {
                 targetShadowLayer = [targetLayer.sublayers objectAtIndex:1];
                 
-                [self setTransformProgress:rotationAfterDirection / 10.0 * value
+                [self setTransformProgress:rotationAfterDirection / 10.0 * _value
                                           :0.0f
-                                          :1.0f/(gravity+aVelocity)
+                                          :1.0f/(self.gravity+aVelocity)
                                           :aX :aY :aZ
                                           :YES
                                           :NO
                                           :kCAFillModeForwards 
                                           :targetLayer];
-                if (shadow) {
-                    [self setOpacityProgress:oldOpacityValue 
+                if (self.shadow) {
+                    [self setOpacityProgress:_oldOpacityValue 
                                             :0.0f
                                             :0.0f
-                                            :currentDuration 
+                                            :_currentDuration 
                                             :kCAFillModeForwards 
                                             :targetShadowLayer];
                 }
-                value = 0.0f;
+                _value = 0.0f;
             } else {
                 targetShadowLayer = [targetLayer.sublayers objectAtIndex:3];
                 
-                [self setTransformProgress:rotationAfterDirection / 10.0 * value
+                [self setTransformProgress:rotationAfterDirection / 10.0 * _value
                                           :rotationAfterDirection
-                                          :1.0f/(gravity+aVelocity)
+                                          :1.0f/(self.gravity+aVelocity)
                                           :aX :aY :aZ
                                           :YES
                                           :NO
                                           :kCAFillModeForwards 
                                           :targetLayer];
-                if (shadow) {
-                    [self setOpacityProgress:oldOpacityValue 
+                if (self.shadow) {
+                    [self setOpacityProgress:_oldOpacityValue 
                                             :0.0f
                                             :0.0f
-                                            :currentDuration 
+                                            :_currentDuration 
                                             :kCAFillModeForwards 
                                             :targetShadowLayer];
                 }
-                value = 10.0f;
+                _value = 10.0f;
             }
         }
     }
@@ -256,14 +257,14 @@
 
 - (void)resetTransformValues
 {
-    AnimationFrame* currentFrame = [transformView.imageStackArray lastObject];
+    AnimationFrame* currentFrame = [self.transformView.imageStackArray lastObject];
     
     CALayer *targetLayer;
     CALayer *targetShadowLayer, *targetShadowLayer2;
     
-    if (currentDirection == kDirectionForward) {
+    if (_currentDirection == kDirectionForward) {
         targetLayer = [currentFrame.animationImages lastObject];
-    } else if (currentDirection == kDirectionBackward) {
+    } else {
         targetLayer = [currentFrame.animationImages objectAtIndex:0];
     }
     
@@ -287,44 +288,44 @@
     CATransform3D aTransform = CATransform3DIdentity;
     targetLayer.sublayerTransform = aTransform;
     
-    if (value == 10.0f) {
-        [transformView rearrangeLayers:currentDirection :3];
+    if (_value == 10.0f) {
+        [self.transformView rearrangeLayers:_currentDirection :3];
     } else {
-        [transformView rearrangeLayers:currentDirection :2];
+        [self.transformView rearrangeLayers:_currentDirection :2];
     }
     
     [CATransaction commit];
     
-    if (controller && [controller respondsToSelector:@selector(animationDidFinish:)]) {
-        if (currentDirection == kDirectionForward && value == 10.0f) {
-            [controller animationDidFinish:1];
-        } else if (currentDirection == kDirectionBackward && value == 10.0f) {
-            [controller animationDidFinish:-1];
+    if (self.controller && [self.controller respondsToSelector:@selector(animationDidFinish:)]) {
+        if (_currentDirection == kDirectionForward && _value == 10.0f) {
+            [self.controller animationDidFinish:1];
+        } else if (_currentDirection == kDirectionBackward && _value == 10.0f) {
+            [self.controller animationDidFinish:-1];
         }
     }
     
-    animationState = 0;
-    animationLock = NO;
-    transitionImageBackup = nil;
-    value = 0.0f;
-    oldOpacityValue = 0.0f;
+    self.animationState = 0;
+    self.animationLock = NO;
+    _transitionImageBackup = nil;
+    _value = 0.0f;
+    _oldOpacityValue = 0.0f;
 }
 
 // set the progress of the animation
 - (void)setTransformValue:(float)aValue delegating:(BOOL)bValue
 {
-    currentDuration = nextDuration;
+    _currentDuration = self.nextDuration;
     
-    int frameCount = [transformView.imageStackArray count];
-    AnimationFrame* currentFrame = [transformView.imageStackArray lastObject];
+    int frameCount = [self.transformView.imageStackArray count];
+    AnimationFrame* currentFrame = [self.transformView.imageStackArray lastObject];
     CALayer *targetLayer;
-    AnimationFrame* nextFrame = [transformView.imageStackArray objectAtIndex:frameCount-2];
-    AnimationFrame* previousFrame = [transformView.imageStackArray objectAtIndex:0];
+    AnimationFrame* nextFrame = [self.transformView.imageStackArray objectAtIndex:frameCount-2];
+    AnimationFrame* previousFrame = [self.transformView.imageStackArray objectAtIndex:0];
 
     int aX, aY, aZ;
     int rotationModifier;
     
-    switch (transformView.animationType) {
+    switch (self.transformView.animationType) {
         case kAnimationFlipVertical:
             aX = 1;
             aY = 0;
@@ -342,10 +343,10 @@
     
     float rotationAfterDirection;
     
-    if (transitionImageBackup == nil) {
-        if (aValue - value >= 0.0f) {
-            currentDirection = kDirectionForward;
-            switch (transformView.animationType) {
+    if (_transitionImageBackup == nil) {
+        if (aValue - _value >= 0.0f) {
+            _currentDirection = kDirectionForward;
+            switch (self.transformView.animationType) {
                 case kAnimationFlipVertical:
                 case kAnimationFlipHorizontal: {
                     targetLayer = [currentFrame.animationImages lastObject];
@@ -355,11 +356,11 @@
                 default:
                     break;
             }
-            animationState++;
-        } else if (aValue - value < 0.0f) {
-            currentDirection = kDirectionBackward;
-            [transformView rearrangeLayers:currentDirection :1];
-            switch (transformView.animationType) {
+            self.animationState++;
+        } else if (aValue - _value < 0.0f) {
+            _currentDirection = kDirectionBackward;
+            [self.transformView rearrangeLayers:_currentDirection :1];
+            switch (self.transformView.animationType) {
                 case kAnimationFlipVertical:
                 case kAnimationFlipHorizontal: {
                     targetLayer = [currentFrame.animationImages objectAtIndex:0];
@@ -369,22 +370,22 @@
                 default:
                     break;
             }
-            animationState++;
+            self.animationState++;
         }
     }
     
-    if (currentDirection == kDirectionForward) {
+    if (_currentDirection == kDirectionForward) {
         rotationAfterDirection = M_PI * rotationModifier;
         targetLayer = [currentFrame.animationImages lastObject];
-    } else if (currentDirection == kDirectionBackward) {
+    } else {
         rotationAfterDirection = -M_PI * rotationModifier;
         targetLayer = [currentFrame.animationImages objectAtIndex:0];
     }
     
     float adjustedValue;
     float opacityValue;
-    if (sequenceType == kSequenceControlled) {
-        adjustedValue = fabs(aValue * (sensitivity/1000.0));
+    if (self.sequenceType == kSequenceControlled) {
+        adjustedValue = fabs(aValue * (self.sensitivity/1000.0));
     } else {
         adjustedValue = fabs(aValue);
     }
@@ -400,10 +401,10 @@
     CALayer *targetFrontLayer, *targetBackLayer = nil;
     CALayer *targetShadowLayer, *targetShadowLayer2 = nil;
     
-    switch (transformView.animationType) {
+    switch (self.transformView.animationType) {
         case kAnimationFlipVertical: {
             
-            switch (currentDirection) {
+            switch (_currentDirection) {
                 case kDirectionForward: {
                     
                     targetFrontLayer = [targetLayer.sublayers objectAtIndex:2];
@@ -428,7 +429,7 @@
             break;
         case kAnimationFlipHorizontal: {
             
-            switch (currentDirection) {
+            switch (_currentDirection) {
                 case kDirectionForward: {
                     
                     targetFrontLayer = [targetLayer.sublayers objectAtIndex:2];
@@ -450,7 +451,7 @@
             break;
         default:break;
     }
-    if (adjustedValue == 10.0f && value == 0.0f) {
+    if (adjustedValue == 10.0f && _value == 0.0f) {
         targetShadowLayer = [targetLayer.sublayers objectAtIndex:1];
         targetShadowLayer2 = [targetLayer.sublayers objectAtIndex:3];
     }
@@ -465,10 +466,10 @@
     [CATransaction setDisableActions:YES];
     
     CATransform3D aTransform = CATransform3DIdentity;
-    aTransform.m34 = 1.0 / -perspectiveDepth;
-    [targetLayer setValue:[NSValue valueWithCATransform3D:CATransform3DRotate(aTransform, rotationAfterDirection/10.0 * value, aX, aY, aZ)] forKeyPath:@"transform"];
-    targetShadowLayer.opacity = oldOpacityValue;
-    if (targetShadowLayer2) targetShadowLayer2.opacity = oldOpacityValue;
+    aTransform.m34 = 1.0 / -self.perspectiveDepth;
+    [targetLayer setValue:[NSValue valueWithCATransform3D:CATransform3DRotate(aTransform, rotationAfterDirection/10.0 * _value, aX, aY, aZ)] forKeyPath:@"transform"];
+    targetShadowLayer.opacity = _oldOpacityValue;
+    if (targetShadowLayer2) targetShadowLayer2.opacity = _oldOpacityValue;
     for (CALayer *layer in targetLayer.sublayers) {
         [layer removeAllAnimations];
     }
@@ -476,59 +477,59 @@
     
     [CATransaction commit];
     
-    if (adjustedValue != value) {
+    if (adjustedValue != _value) {
         
         CATransform3D aTransform = CATransform3DIdentity;
-        aTransform.m34 = 1.0 / -perspectiveDepth;
+        aTransform.m34 = 1.0 / -self.perspectiveDepth;
         targetLayer.sublayerTransform = aTransform;
         
-        if (transitionImageBackup == nil) { //transition has begun, copy the layer content for the reverse layer
+        if (_transitionImageBackup == nil) { //transition has begun, copy the layer content for the reverse layer
             
             CGImageRef tempImageRef = (CGImageRef)targetBackLayer.contents;
             
             //NSLog(@"%s:%d imageref=%@", __func__, __LINE__, tempImageRef);
             
-            transitionImageBackup = (CGImageRef)targetFrontLayer.contents;
-            targetFrontLayer.contents = (id)tempImageRef;
+            _transitionImageBackup = (CGImageRef)targetFrontLayer.contents;
+            targetFrontLayer.contents = (__bridge id)tempImageRef;
         } 
         
-        [self setTransformProgress:(rotationAfterDirection/10.0 * value)
+        [self setTransformProgress:(rotationAfterDirection/10.0 * _value)
                                   :(rotationAfterDirection/10.0 * adjustedValue)
-                                  :currentDuration
+                                  :_currentDuration
                                   :aX :aY :aZ
                                   :bValue
                                   :NO
                                   :kCAFillModeForwards 
                                   :targetLayer];
         
-        if (shadow) {
-            if (oldOpacityValue == 0.0f && oldOpacityValue == opacityValue) {
+        if (self.shadow) {
+            if (_oldOpacityValue == 0.0f && _oldOpacityValue == opacityValue) {
                 
                 [self setOpacityProgress:0.0f 
                                         :0.5f
                                         :0.0f
-                                        :currentDuration/2 
+                                        :_currentDuration/2 
                                         :kCAFillModeForwards 
                                         :targetShadowLayer];
                 [self setOpacityProgress:0.5f 
                                         :0.0f
-                                        :currentDuration/2
-                                        :currentDuration/2 
+                                        :_currentDuration/2
+                                        :_currentDuration/2 
                                         :kCAFillModeBackwards 
                                         :targetShadowLayer2];
             } else {
-                [self setOpacityProgress:oldOpacityValue 
+                [self setOpacityProgress:_oldOpacityValue 
                                         :opacityValue
                                         :0.0f
-                                        :currentDuration 
+                                        :_currentDuration 
                                         :kCAFillModeForwards 
                                         :targetShadowLayer];
             }
         }
         
-        value = adjustedValue;
+        _value = adjustedValue;
         
-        oldOpacityValue = opacityValue;
+        _oldOpacityValue = opacityValue;
     }
 
 }
@@ -547,7 +548,7 @@
     //NSLog(@"transform value %f, %f", startTransformValue, endTransformValue);
     
     CATransform3D aTransform = CATransform3DIdentity;
-    aTransform.m34 = 1.0 / -perspectiveDepth;
+    aTransform.m34 = 1.0 / -self.perspectiveDepth;
     
     CABasicAnimation *anim = [CABasicAnimation animationWithKeyPath:@"transform"];
     anim.duration = duration;

@@ -109,7 +109,7 @@
         label.contentsScale = [[UIScreen mainScreen] scale];
         label.contentsGravity = kCAGravityResizeAspect;
         label.string = tickerString;
-        label.font = font;
+        label.font = (__bridge CFTypeRef)(font);
         label.fontSize = fontSize;
         label.alignmentMode = fontAlignment;
         label.truncationMode = textTruncationMode;

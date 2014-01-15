@@ -143,8 +143,8 @@
                 
                 CGImageRef imageRef2 = CGImageCreateWithImageInRect([templateImage CGImage], CGRectMake(0, templateHeight*scale/2, templateWidth*scale, templateHeight*scale/2));
                 
-                [backLayer setContents:(id)imageRef];
-                [backLayer2 setContents:(id)imageRef2];
+                [backLayer setContents:(id)CFBridgingRelease(imageRef)];
+                [backLayer2 setContents:(id)CFBridgingRelease(imageRef2)];
                 
                 AnimationFrame *newFrame = [[AnimationFrame alloc] init];
                 [self.layer addSublayer:newFrame.rootAnimationLayer];
@@ -218,8 +218,8 @@
                 
                 CGImageRef imageRef2 = CGImageCreateWithImageInRect([templateImage CGImage], CGRectMake(0, 0, templateWidth*scale/2, templateHeight*scale));
                 
-                [backLayer setContents:(id)imageRef2];
-                [backLayer2 setContents:(id)imageRef];
+                [backLayer setContents:(id)CFBridgingRelease(imageRef2)];
+                [backLayer2 setContents:(id)CFBridgingRelease(imageRef)];
                 
                 AnimationFrame *newFrame = [[AnimationFrame alloc] init];
                 [self.layer addSublayer:newFrame.rootAnimationLayer];

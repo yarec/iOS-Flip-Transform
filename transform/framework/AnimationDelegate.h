@@ -57,19 +57,7 @@ typedef enum {
 
 typedef void (^AnimationCompletionBlock)(AnimationDelegate *animationDelegate);
 
-@interface AnimationDelegate : NSObject {
-    
-    CGImageRef transitionImageBackup;
-    
-    float currentDuration;
-    
-    DirectionType currentDirection;
-    
-    float value;
-    float newValue;
-    
-    float oldOpacityValue;
-}
+@interface AnimationDelegate : NSObject
 
 @property (nonatomic, assign) GenericAnimationView *transformView;
 @property (nonatomic, assign) id controller;
