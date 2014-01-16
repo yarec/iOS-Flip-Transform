@@ -9,5 +9,5 @@ Pod::Spec.new do |s|
   s.platform = :ios  
   s.source_files = 'transform/framework/*.{h,m}'
   s.framework = 'QuartzCore'
-
+  s.requires_arc = true
 end

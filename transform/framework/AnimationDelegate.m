@@ -62,7 +62,6 @@
     if ((self = [super init])) {
         
         self.transformView = nil;
-        self.controller = nil;
         
         self.sequenceType = aType;
         _currentDirection = aDirection;
@@ -295,15 +294,7 @@
     }
     
     [CATransaction commit];
-    
-    if (self.controller && [self.controller respondsToSelector:@selector(animationDidFinish:)]) {
-        if (_currentDirection == kDirectionForward && _value == 10.0f) {
-            [self.controller animationDidFinish:1];
-        } else if (_currentDirection == kDirectionBackward && _value == 10.0f) {
-            [self.controller animationDidFinish:-1];
-        }
-    }
-    
+        
     self.animationState = 0;
     self.animationLock = NO;
     _transitionImageBackup = nil;
@@ -485,11 +476,11 @@
         
         if (_transitionImageBackup == nil) { //transition has begun, copy the layer content for the reverse layer
             
-            CGImageRef tempImageRef = (CGImageRef)targetBackLayer.contents;
+            CGImageRef tempImageRef = (__bridge CGImageRef)targetBackLayer.contents;
             
             //NSLog(@"%s:%d imageref=%@", __func__, __LINE__, tempImageRef);
             
-            _transitionImageBackup = (CGImageRef)targetFrontLayer.contents;
+            _transitionImageBackup = (__bridge CGImageRef)targetFrontLayer.contents;
             targetFrontLayer.contents = (__bridge id)tempImageRef;
         } 
         
