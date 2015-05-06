@@ -66,11 +66,11 @@
 @property (nonatomic) float fontSize;
 // provide a font from plist or use inbuilt fonts
 // if the rendering is very slow, change the font
-@property (nonatomic, weak) NSString *font;
+@property (nonatomic, assign) NSString *font;
 // font alignment
-@property (nonatomic, weak) NSString *fontAlignment;
+@property (nonatomic, assign) NSString *fontAlignment;
 // truncation mode to set for CATextLayer
-@property (nonatomic, weak) NSString *textTruncationMode;
+@property (nonatomic, assign) NSString *textTruncationMode;
 
 // view has to know the type of animation to be able to prepare (draw, slice) the animation layers
 @property (nonatomic) AnimationType animationType;

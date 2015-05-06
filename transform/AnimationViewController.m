@@ -93,7 +93,7 @@
     // first flip view is a vertical flip on auto, like a news ticker
     animationDelegate = [[AnimationDelegate alloc] initWithSequenceType:kSequenceAuto
                                                           directionType:kDirectionForward];
-    animationDelegate.controller = self;
+//    animationDelegate.controller = self;
     animationDelegate.perspectiveDepth = 200;
     [animationDelegate setAnimationCompletionBlock:^(AnimationDelegate *animationDelegate) {
         NSLog(@"completion block did run");
@@ -165,7 +165,7 @@
     
     animationDelegate2 = [[AnimationDelegate alloc] initWithSequenceType:kSequenceControlled
                                                            directionType:kDirectionForward];
-    animationDelegate2.controller = self;
+//    animationDelegate2.controller = self;
     animationDelegate2.perspectiveDepth = 2000;
     
     self.flipView2 = [[FlipView alloc] initWithAnimationType:kAnimationFlipHorizontal

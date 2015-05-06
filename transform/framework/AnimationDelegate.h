@@ -59,7 +59,7 @@ typedef void (^AnimationCompletionBlock)(AnimationDelegate *animationDelegate);
 
 @interface AnimationDelegate : NSObject
 
-@property (nonatomic, weak) GenericAnimationView *transformView;
+@property (nonatomic, assign) GenericAnimationView *transformView;
 @property (readwrite, copy) AnimationCompletionBlock animationCompletionBlock;
 
 // the duration of the next animation cycle
