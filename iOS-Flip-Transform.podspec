@@ -3,9 +3,9 @@ Pod::Spec.new do |s|
   s.version  = '0.0.1'
   s.license  = 'MIT'
   s.summary  = 'Core Animation framework for navigating data by flipping.'
-  s.homepage = 'https://github.com/Dillion/iOS-Flip-Transform'
-  s.author   = { 'Dillion' => 'Dillion' }
-  s.source   = { :git => 'https://github.com/jcon5294/iOS-Flip-Transform.git', :tag => '0.0.1' }
+  s.homepage = 'https://github.com/yarec/iOS-Flip-Transform'
+  s.author   = { 'yarec' => 'yarec' }
+  s.source   = { :git => 'https://github.com/yarec/iOS-Flip-Transform.git' }
   s.platform = :ios  
   s.source_files = 'transform/framework/*.{h,m}'
   s.framework = 'QuartzCore'
